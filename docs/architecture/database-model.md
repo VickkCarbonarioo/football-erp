@@ -221,3 +221,81 @@ Representa uma competição esportiva e sua temporada.
 | created_at | Data/hora | Data de criação |
 | updated_at | Data/hora | Última atualização |
 
+## ⚽ Match
+
+Representa uma partida disputada por uma equipe.
+
+### Campos iniciais
+
+| Campo | Tipo conceitual | Descrição |
+|---|---|---|
+| id | Identificador | Identificador único da partida |
+| team_id | Relacionamento | Equipe que disputou a partida |
+| competition_id | Relacionamento | Competição da partida |
+| opponent | Texto | Adversário |
+| match_date | Data/hora | Data e horário da partida |
+| home_away | Texto | Mandante ou visitante |
+| stadium | Texto | Local da partida |
+| status | Texto | Situação da partida |
+| goals_for | Número | Gols marcados pela equipe |
+| goals_against | Número | Gols sofridos |
+| created_at | Data/hora | Data de criação |
+| updated_at | Data/hora | Última atualização |
+
+## 🏋️ TrainingSession
+
+Representa uma sessão de treinamento realizada por uma equipe.
+
+### Campos iniciais
+
+| Campo | Tipo conceitual | Descrição |
+|---|---|---|
+| id | Identificador | Identificador único |
+| team_id | Relacionamento | Equipe que realizou o treino |
+| date | Data/hora | Data e horário |
+| type | Texto | Tipo de treinamento |
+| duration_minutes | Número | Duração planejada ou realizada |
+| planned_intensity | Texto | Intensidade planejada |
+| description | Texto longo | Descrição do treinamento |
+| created_at | Data/hora | Data de criação |
+| updated_at | Data/hora | Última atualização |
+
+## 📊 PlayerMatch
+
+Representa a participação e o desempenho de um jogador
+em uma determinada partida.
+
+### Campos iniciais
+
+| Campo | Tipo conceitual | Descrição |
+|---|---|---|
+| id | Identificador | Identificador único |
+| match_id | Relacionamento | Partida |
+| player_id | Relacionamento | Jogador |
+| minutes_played | Número | Minutos jogados |
+| goals | Número | Gols marcados |
+| assists | Número | Assistências |
+| shots | Número | Finalizações |
+| passes | Número | Passes registrados |
+| tackles | Número | Desarmes |
+| rating | Decimal | Nota de desempenho |
+| notes | Texto longo | Observações |
+
+## 🏃 TrainingParticipation
+
+Representa a participação individual de um jogador
+em uma sessão de treinamento.
+
+### Campos iniciais
+
+| Campo | Tipo conceitual | Descrição |
+|---|---|---|
+| id | Identificador | Identificador único |
+| training_id | Relacionamento | Sessão de treinamento |
+| player_id | Relacionamento | Jogador |
+| attendance | Booleano | Indica se participou |
+| duration_minutes | Número | Minutos realizados |
+| rpe | Número | Percepção subjetiva de esforço |
+| load | Decimal | Carga calculada |
+| notes | Texto longo | Observações |
+
