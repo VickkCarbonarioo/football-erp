@@ -1,0 +1,22 @@
+# Ambiente virtual do Python.
+# Contém bibliotecas instaladas localmente e não precisa
+# ser enviado para o GitHub.
+.venv/
+
+# Segundo ambiente virtual criado acidentalmente pelo VS Code.
+# Também não deve fazer parte do repositório.
+.venv-1/
+
+# Cache criado automaticamente pelo Python.
+# Esses arquivos podem ser recriados quando necessário.
+__pycache__/
+
+# Arquivos compilados do Python.
+*.pyc
+
+# Arquivos de configuração que podem conter informações
+# sensíveis, como senhas e chaves de API.
+.env
+
+# Arquivos de ambiente de produção.
+.env.production
