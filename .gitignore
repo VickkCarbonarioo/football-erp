@@ -20,3 +20,7 @@ __pycache__/
 
 # Arquivos de ambiente de produção.
 .env.production
+
+**# Banco de dados SQLite local do Football ERP.**
+**# O arquivo será criado localmente e não deve ser enviado ao GitHub.**
+football_erp.db
