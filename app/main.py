@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from app.club_service import list_clubs
+from app.club_service import create_club
+from app.schemas import ClubCreate
 
 
 # Cria a aplicação principal do Football ERP.
@@ -35,3 +37,24 @@ def get_clubs():
         }
         for club in clubs
     ]
+
+# Rota para cadastrar um novo clube.
+@app.post("/clubs", status_code=201)
+def post_club(club_data: ClubCreate):
+
+    # Envia o nome recebido para o serviço de cadastro.
+    club = create_club(club_data.name)
+
+    # Verifica se o serviço identificou um clube duplicado.
+    if club is None:
+        raise HTTPException(
+        status_code=409,
+        detail="Este clube já está cadastrado."
+    )
+
+    # Retorna os dados do clube cadastrado.
+    return {
+        "id": club.id,
+        "name": club.name
+    }
+

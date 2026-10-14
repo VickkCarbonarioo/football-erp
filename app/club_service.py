@@ -10,6 +10,8 @@ from app.models import Club
 
 
 # Define uma função que recebe o nome de um clube.
+
+# Define uma função que recebe o nome de um clube.
 def create_club(name: str):
 
     # Abre uma sessão para trabalhar com o banco.
@@ -22,8 +24,7 @@ def create_club(name: str):
 
         # Impede o cadastro de um nome já existente.
         if existing_club:
-            print(f"O clube {name} já está cadastrado!")
-            return
+            return None
 
         # Cria um objeto que representa o novo clube.
         club = Club(name=name)
@@ -37,8 +38,9 @@ def create_club(name: str):
         # Atualiza os dados do objeto após o cadastro.
         session.refresh(club)
 
-        # Exibe a confirmação do cadastro.
-        print(f"Clube cadastrado! ID: {club.id}, Nome: {club.name}")
+        # Retorna o clube criado para quem chamou a função.
+        return club
+
 
 
 # Define uma função para listar todos os clubes cadastrados.
