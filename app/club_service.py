@@ -40,6 +40,7 @@ def create_club(name: str):
         # Exibe a confirmação do cadastro.
         print(f"Clube cadastrado! ID: {club.id}, Nome: {club.name}")
 
+
 # Define uma função para listar todos os clubes cadastrados.
 def list_clubs():
 
@@ -49,11 +50,5 @@ def list_clubs():
         # Busca todos os registros da tabela Club.
         clubs = session.query(Club).all()
 
-        # Verifica se existe algum clube cadastrado.
-        if not clubs:
-            print("Nenhum clube cadastrado.")
-            return
-
-        # Percorre a lista e exibe os dados de cada clube.
-        for club in clubs:
-            print(f"ID: {club.id} | Nome: {club.name}")
+        # Retorna os clubes encontrados para quem chamou a função.
+        return clubs
