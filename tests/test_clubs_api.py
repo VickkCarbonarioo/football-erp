@@ -76,3 +76,25 @@ def test_get_nonexistent_club_returns_not_found(client):
 
     # Confirma a mensagem de erro retornada.
     assert response.json()["detail"] == "Clube não encontrado."
+
+
+def test_create_club_with_empty_name_returns_unprocessable_entity(client):
+    # Envia uma requisição com o nome vazio.
+    response = client.post(
+        "/clubs",
+        json={"name": ""},
+    )
+
+    # Confirma que a API rejeitou os dados inválidos.
+    assert response.status_code == 422
+
+
+def test_create_club_with_whitespace_name_returns_unprocessable_entity(client):
+    # Envia um nome composto apenas por espaços.
+    response = client.post(
+        "/clubs",
+        json={"name": "   "},
+    )
+
+    # Confirma que a API rejeitou o nome inválido.
+    assert response.status_code == 422
