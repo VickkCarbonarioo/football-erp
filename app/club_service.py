@@ -54,3 +54,19 @@ def list_clubs():
 
         # Retorna os clubes encontrados para quem chamou a função.
         return clubs
+
+    
+# Define uma função para buscar um clube pelo seu ID.
+def get_club_by_id(club_id: int):
+
+    # Abre uma sessão para consultar o banco de dados.
+    with Session(engine) as session:
+
+        # Procura o clube que possui o ID informado.
+        club = session.query(Club).filter(
+            Club.id == club_id
+        ).first()
+
+        # Retorna o clube encontrado ou None se não existir.
+        return club
+

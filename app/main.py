@@ -1,8 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from app.club_service import list_clubs
-from app.club_service import create_club
+from app.club_service import create_club, get_club_by_id
 from app.schemas import ClubCreate
-
 
 # Cria a aplicação principal do Football ERP.
 # A partir deste objeto vamos registrar nossas rotas,
@@ -53,6 +52,27 @@ def post_club(club_data: ClubCreate):
     )
 
     # Retorna os dados do clube cadastrado.
+    return {
+        "id": club.id,
+        "name": club.name
+    }
+
+
+# Rota para consultar um clube específico pelo seu ID.
+@app.get("/clubs/{club_id}")
+def get_club(club_id: int):
+
+    # Busca o clube utilizando o serviço existente.
+    club = get_club_by_id(club_id)
+
+    # Verifica se o clube foi encontrado.
+    if club is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Clube não encontrado."
+        )
+
+    # Retorna os dados do clube encontrado.
     return {
         "id": club.id,
         "name": club.name
