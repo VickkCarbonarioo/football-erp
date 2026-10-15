@@ -1,8 +1,18 @@
+
 from fastapi import FastAPI, HTTPException
-from app.club_service import list_clubs
-from app.club_service import create_club, get_club_by_id
+
+# Importa os serviços de clubes.
+from app.club_service import list_clubs, create_club, get_club_by_id
+
+# Importa os serviços da comissão técnica.
 from app.staff_service import create_staff_member, list_staff_members_by_club
-from app.schemas import ClubCreate, StaffMemberCreate
+
+# Importa os serviços de equipes.
+from app.team_service import create_team, list_teams_by_club
+
+# Importa os schemas de validação da API.
+from app.schemas import ClubCreate, StaffMemberCreate, TeamCreate
+
 
 # Cria a aplicação principal do Football ERP.
 # A partir deste objeto vamos registrar nossas rotas,
@@ -133,4 +143,73 @@ def get_club_staff(club_id: int):
             "club_id": staff_member.club_id,
         }
         for staff_member in staff_members
+    ]
+
+
+# Rota para cadastrar uma nova equipe.
+@app.post("/teams", status_code=201)
+def post_team(team_data: TeamCreate):
+
+    # Envia os dados recebidos para o serviço de cadastro.
+    team = create_team(
+        name=team_data.name,
+        category=team_data.category,
+        gender=team_data.gender,
+        age_group=team_data.age_group,
+        club_id=team_data.club_id,
+        status=team_data.status,
+    )
+
+    # Verifica se o clube informado existe.
+    if team is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Clube não encontrado.",
+        )
+
+    # Retorna os dados da equipe cadastrada.
+    return {
+        "id": team.id,
+        "name": team.name,
+        "category": team.category,
+        "gender": team.gender,
+        "age_group": team.age_group,
+        "club_id": team.club_id,
+        "status": team.status,
+        "created_at": team.created_at,
+        "updated_at": team.updated_at,
+    }
+
+
+# Rota para listar as equipes vinculadas a um clube.
+@app.get("/clubs/{club_id}/teams")
+def get_club_teams(club_id: int):
+
+    # Verifica se o clube solicitado existe.
+    club = get_club_by_id(club_id)
+
+    # Retorna erro se o clube não existir.
+    if club is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Clube não encontrado.",
+        )
+
+    # Busca as equipes vinculadas ao clube.
+    teams = list_teams_by_club(club_id)
+
+    # Retorna as equipes em formato JSON.
+    return [
+        {
+            "id": team.id,
+            "name": team.name,
+            "category": team.category,
+            "gender": team.gender,
+            "age_group": team.age_group,
+            "club_id": team.club_id,
+            "status": team.status,
+            "created_at": team.created_at,
+            "updated_at": team.updated_at,
+        }
+        for team in teams
     ]

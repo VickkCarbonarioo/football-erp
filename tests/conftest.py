@@ -14,11 +14,13 @@ from app.main import app
 
 # Importa a base declarativa dos modelos.
 from app.database import Base
+# Importa os modelos para registrá-los na Base antes de criar as tabelas.
+from app.models import Club, StaffMember, Team
 
 # Importa os serviços para direcioná-los ao banco de teste.
 import app.club_service as club_service
 import app.staff_service as staff_service
-
+import app.team_service as team_service
 
 # Executa esta configuração antes de cada teste.
 @pytest.fixture
@@ -36,10 +38,12 @@ def client():
     # Guarda os engines originais dos dois serviços.
     original_club_engine = club_service.engine
     original_staff_engine = staff_service.engine
+    original_team_engine = team_service.engine
 
     # Direciona os dois serviços para o banco de teste.
     club_service.engine = test_engine
     staff_service.engine = test_engine
+    team_service.engine = test_engine
 
     try:
         # Cria o cliente que permite chamar a API nos testes.
@@ -50,6 +54,7 @@ def client():
         # Restaura os engines originais dos serviços.
         club_service.engine = original_club_engine
         staff_service.engine = original_staff_engine
+        team_service.engine = original_team_engine
 
         # Remove as tabelas do banco temporário.
         Base.metadata.drop_all(bind=test_engine)
