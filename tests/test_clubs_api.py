@@ -98,3 +98,25 @@ def test_create_club_with_whitespace_name_returns_unprocessable_entity(client):
 
     # Confirma que a API rejeitou o nome inválido.
     assert response.status_code == 422
+
+
+def test_create_club_with_numeric_name_returns_unprocessable_entity(client):
+    # Envia um número no campo que deveria receber o nome do clube.
+    response = client.post(
+        "/clubs",
+        json={"name": 123},
+    )
+
+    # Confirma que a API rejeitou os dados inválidos.
+    assert response.status_code == 422
+
+
+def test_create_club_without_name_returns_unprocessable_entity(client):
+    # Envia uma requisição sem o campo obrigatório "name".
+    response = client.post(
+        "/clubs",
+        json={},
+    )
+
+    # Confirma que a API rejeitou os dados incompletos.
+    assert response.status_code == 422
