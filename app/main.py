@@ -8,10 +8,17 @@ from app.club_service import list_clubs, create_club, get_club_by_id
 from app.staff_service import create_staff_member, list_staff_members_by_club
 
 # Importa os serviços de equipes.
-from app.team_service import create_team, list_teams_by_club
+from app.team_service import (
+    create_team,
+    list_teams_by_club,
+    get_team_by_id,
+)
+
+# Importa os serviços de jogadores.
+from app.player_service import create_player, list_players_by_team
 
 # Importa os schemas de validação da API.
-from app.schemas import ClubCreate, StaffMemberCreate, TeamCreate
+from app.schemas import ClubCreate, StaffMemberCreate, TeamCreate, PlayerCreate
 
 
 # Cria a aplicação principal do Football ERP.
@@ -212,4 +219,77 @@ def get_club_teams(club_id: int):
             "updated_at": team.updated_at,
         }
         for team in teams
+    ]
+
+# Rota para cadastrar um novo jogador.
+@app.post("/players", status_code=201)
+def post_player(player_data: PlayerCreate):
+
+    # Envia os dados recebidos para o serviço de cadastro.
+    player = create_player(
+        name=player_data.name,
+        birth_date=player_data.birth_date,
+        nationality=player_data.nationality,
+        dominant_foot=player_data.dominant_foot,
+        height_cm=player_data.height_cm,
+        shirt_number=player_data.shirt_number,
+        team_id=player_data.team_id,
+        status=player_data.status,
+    )
+
+    # Verifica se a equipe informada existe.
+    if player is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Equipe não encontrada.",
+        )
+
+    # Retorna os dados do jogador cadastrado.
+    return {
+        "id": player.id,
+        "name": player.name,
+        "birth_date": player.birth_date,
+        "nationality": player.nationality,
+        "dominant_foot": player.dominant_foot,
+        "height_cm": player.height_cm,
+        "shirt_number": player.shirt_number,
+        "team_id": player.team_id,
+        "status": player.status,
+        "created_at": player.created_at,
+        "updated_at": player.updated_at,
+    }
+
+# Rota para listar os jogadores vinculados a uma equipe.
+@app.get("/teams/{team_id}/players")
+def get_team_players(team_id: int):
+
+    # Busca a equipe pelo ID informado.
+    team = get_team_by_id(team_id)
+
+    # Verifica se a equipe existe.
+    if team is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Equipe não encontrada.",
+        )
+
+    # Busca os jogadores vinculados à equipe.
+    players = list_players_by_team(team_id)
+
+    # Retorna os jogadores encontrados em formato JSON.
+    return [
+        {
+            "id": player.id,
+            "name": player.name,
+            "birth_date": player.birth_date,
+            "nationality": player.nationality,
+            "dominant_foot": player.dominant_foot,
+            "height_cm": player.height_cm,
+            "shirt_number": player.shirt_number,
+            "team_id": player.team_id,
+            "status": player.status,
+            "created_at": player.created_at,
+            "updated_at": player.updated_at,
+        }
+        for player in players
     ]

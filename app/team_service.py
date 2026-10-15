@@ -65,3 +65,16 @@ def list_teams_by_club(club_id: int):
 
         # Retorna a lista de equipes encontradas.
         return teams
+
+# Define uma função para buscar uma equipe pelo ID.
+def get_team_by_id(team_id: int):
+    # Abre uma sessão para consultar o banco de dados.
+    with Session(engine) as session:
+
+        # Busca a primeira equipe que corresponde ao ID informado.
+        team = session.query(Team).filter(
+            Team.id == team_id
+        ).first()
+
+        # Retorna a equipe encontrada ou None se ela não existir.
+        return team

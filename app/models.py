@@ -1,9 +1,9 @@
 
-# Importa recursos para trabalhar com datas e horários.
-from datetime import datetime, timezone
+# Importa date para datas sem horário e datetime/timezone para registros de data e hora.
+from datetime import date, datetime, timezone
 
-# Importa tipos de dados e chaves estrangeiras do SQLAlchemy.
-from sqlalchemy import String, ForeignKey, DateTime
+# Importa os tipos de dados e a chave estrangeira usados nos modelos.
+from sqlalchemy import String, ForeignKey, DateTime, Date, Integer
 
 # Importa recursos para tipar e mapear as colunas dos modelos.
 from sqlalchemy.orm import Mapped, mapped_column
@@ -100,6 +100,79 @@ class Team(Base):
     )
 
     # Data e hora da última atualização da equipe.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+    # Define o modelo que representará os jogadores no banco de dados.
+class Player(Base):
+    # Define o nome da tabela que será criada no banco.
+    __tablename__ = "players"
+
+    # Identificador único de cada jogador.
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    # ID da equipe à qual o jogador pertence.
+    # A chave estrangeira exige uma equipe existente.
+    team_id: Mapped[int] = mapped_column(
+        ForeignKey("teams.id"),
+        nullable=False,
+    )
+
+    # Nome completo do jogador.
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
+    # Data de nascimento, armazenada sem horário.
+    birth_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+
+    # Nacionalidade do jogador.
+    nationality: Mapped[str] = mapped_column(
+        String(60),
+        nullable=False,
+    )
+
+    # Pé dominante do jogador.
+    # Permanece opcional enquanto não definirmos regras específicas.
+    dominant_foot: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    # Altura do jogador em centímetros.
+    height_cm: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+
+    # Número da camisa do jogador.
+    shirt_number: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+
+    # Situação atual do jogador, com padrão active.
+    status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default="active",
+    )
+
+    # Data e hora em que o registro foi criado.
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    # Data e hora da última atualização do registro.
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
