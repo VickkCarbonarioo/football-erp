@@ -2,24 +2,22 @@
 # Importa recursos para criar e gerenciar testes.
 import pytest
 
-# Importa o mecanismo de conexão e a base dos modelos.
+# Importa o mecanismo de conexão com o banco de dados.
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
 # Importa o cliente de testes do FastAPI.
 from fastapi.testclient import TestClient
 
-# Importa a aplicação.
+# Importa a aplicação principal.
 from app.main import app
 
-# Importa o modelo para registrar a tabela nos metadados.
-from app.models import Club
-
-# Importa a base declarativa.
+# Importa a base declarativa dos modelos.
 from app.database import Base
 
-# Importa o módulo de serviços para substituir o engine.
+# Importa os serviços para direcioná-los ao banco de teste.
 import app.club_service as club_service
+import app.staff_service as staff_service
 
 
 # Executa esta configuração antes de cada teste.
@@ -32,24 +30,31 @@ def client():
         poolclass=StaticPool,
     )
 
-    # Cria a tabela de clubes no banco de teste.
+    # Cria as tabelas dos modelos no banco de teste.
     Base.metadata.create_all(bind=test_engine)
 
-    # Guarda o engine original para restaurá-lo depois.
-    original_engine = club_service.engine
+    # Guarda os engines originais dos dois serviços.
+    original_club_engine = club_service.engine
+    original_staff_engine = staff_service.engine
 
-    # Direciona os serviços para o banco de teste.
+    # Direciona os dois serviços para o banco de teste.
     club_service.engine = test_engine
+    staff_service.engine = test_engine
 
-    # Cria o cliente que permite chamar a API nos testes.
-    with TestClient(app) as test_client:
-        yield test_client
+    try:
+        # Cria o cliente que permite chamar a API nos testes.
+        with TestClient(app) as test_client:
+            yield test_client
 
-    # Restaura o engine original.
-    club_service.engine = original_engine
+    finally:
+        # Restaura os engines originais dos serviços.
+        club_service.engine = original_club_engine
+        staff_service.engine = original_staff_engine
 
-    # Remove as tabelas do banco de teste.
-    Base.metadata.drop_all(bind=test_engine)
+        # Remove as tabelas do banco temporário.
+        Base.metadata.drop_all(bind=test_engine)
 
-    # Encerra as conexões do banco temporário.
-    test_engine.dispose()
+        # Encerra as conexões do banco de teste.
+        test_engine.dispose()
+
+

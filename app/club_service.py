@@ -9,7 +9,6 @@ from app.database import engine
 from app.models import Club
 
 
-# Define uma função que recebe o nome de um clube.
 
 # Define uma função que recebe o nome de um clube.
 def create_club(name: str):
