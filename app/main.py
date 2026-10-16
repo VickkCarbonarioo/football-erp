@@ -1,11 +1,22 @@
 
+# Importa date para validar a data de encerramento dos contratos.
+from datetime import date
+
+# Importa FastAPI para criar a API e HTTPException para retornar erros HTTP.
 from fastapi import FastAPI, HTTPException
 
 # Importa os serviços de clubes.
-from app.club_service import list_clubs, create_club, get_club_by_id
+from app.club_service import (
+    list_clubs,
+    create_club,
+    get_club_by_id,
+)
 
 # Importa os serviços da comissão técnica.
-from app.staff_service import create_staff_member, list_staff_members_by_club
+from app.staff_service import (
+    create_staff_member,
+    list_staff_members_by_club,
+)
 
 # Importa os serviços de equipes.
 from app.team_service import (
@@ -15,30 +26,84 @@ from app.team_service import (
 )
 
 # Importa os serviços de jogadores.
-from app.player_service import create_player, list_players_by_team
+from app.player_service import (
+    create_player,
+    list_players_by_team,
+    get_player_by_id,
+)
 
-# Importa os schemas de validação da API.
-from app.schemas import ClubCreate, StaffMemberCreate, TeamCreate, PlayerCreate
+# Importa os serviços de contratos.
+from app.contract_service import (
+    create_contract,
+    list_contracts_by_player,
+    terminate_contract,
+)
 
-
-# Cria a aplicação principal do Football ERP.
-# A partir deste objeto vamos registrar nossas rotas,
-# configurações e funcionalidades da API.
-app = FastAPI(
-    title="Football ERP",
-    description="Sistema ERP para gestão estratégica de clubes de futebol.",
-    version="0.1.0"
+# Importa os schemas utilizados para validar os dados recebidos pela API.
+from app.schemas import (
+    ClubCreate,
+    StaffMemberCreate,
+    TeamCreate,
+    PlayerCreate,
+    ContractCreate,
 )
 
 
+# Cria a aplicação principal do Football ERP.
+app = FastAPI(
+    title="Football ERP",
+    description="Sistema ERP para gestão estratégica de clubes de futebol.",
+    version="0.1.0",
+)
+
+
+# ============================================================
+# FUNÇÕES AUXILIARES
+# ============================================================
+
+# Converte os dados de um contrato para o formato de resposta da API.
+def serialize_contract(contract):
+    # Formata os valores monetários com exatamente duas casas decimais.
+    # Mantém None quando o valor total não foi informado.
+    monthly_salary = format(contract.monthly_salary, ".2f")
+
+    total_value = (
+        format(contract.total_value, ".2f")
+        if contract.total_value is not None
+        else None
+    )
+
+    # Retorna os dados do contrato em formato compatível com JSON.
+    return {
+        "id": contract.id,
+        "player_id": contract.player_id,
+        "start_date": contract.start_date,
+        "end_date": contract.end_date,
+        "monthly_salary": monthly_salary,
+        "total_value": total_value,
+        "terminated_at": contract.terminated_at,
+        "created_at": contract.created_at,
+        "updated_at": contract.updated_at,
+    }
+
+
+# ============================================================
+# ROTAS INICIAIS
+# ============================================================
+
 # Rota inicial da API.
-# Quando alguém acessar "/", o sistema executará esta função.
 @app.get("/")
 def home():
+    # Retorna uma mensagem para confirmar que a API está funcionando.
     return {
         "message": "Football ERP está funcionando!",
-        "version": "0.1.0"
+        "version": "0.1.0",
     }
+
+
+# ============================================================
+# ROTAS DE CLUBES
+# ============================================================
 
 # Rota para consultar todos os clubes cadastrados.
 @app.get("/clubs")
@@ -50,36 +115,35 @@ def get_clubs():
     return [
         {
             "id": club.id,
-            "name": club.name
+            "name": club.name,
         }
         for club in clubs
     ]
 
+
 # Rota para cadastrar um novo clube.
 @app.post("/clubs", status_code=201)
 def post_club(club_data: ClubCreate):
-
     # Envia o nome recebido para o serviço de cadastro.
     club = create_club(club_data.name)
 
     # Verifica se o serviço identificou um clube duplicado.
     if club is None:
         raise HTTPException(
-        status_code=409,
-        detail="Este clube já está cadastrado."
-    )
+            status_code=409,
+            detail="Este clube já está cadastrado.",
+        )
 
     # Retorna os dados do clube cadastrado.
     return {
         "id": club.id,
-        "name": club.name
+        "name": club.name,
     }
 
 
-# Rota para consultar um clube específico pelo seu ID.
+# Rota para consultar um clube específico pelo ID.
 @app.get("/clubs/{club_id}")
 def get_club(club_id: int):
-
     # Busca o clube utilizando o serviço existente.
     club = get_club_by_id(club_id)
 
@@ -87,20 +151,23 @@ def get_club(club_id: int):
     if club is None:
         raise HTTPException(
             status_code=404,
-            detail="Clube não encontrado."
+            detail="Clube não encontrado.",
         )
 
     # Retorna os dados do clube encontrado.
     return {
         "id": club.id,
-        "name": club.name
+        "name": club.name,
     }
 
+
+# ============================================================
+# ROTAS DA COMISSÃO TÉCNICA
+# ============================================================
 
 # Rota para cadastrar um profissional da comissão técnica.
 @app.post("/staff", status_code=201)
 def post_staff_member(staff_data: StaffMemberCreate):
-
     # Envia os dados recebidos para o serviço de cadastro.
     staff_member = create_staff_member(
         name=staff_data.name,
@@ -127,11 +194,10 @@ def post_staff_member(staff_data: StaffMemberCreate):
 # Rota para consultar a comissão técnica de um clube.
 @app.get("/clubs/{club_id}/staff")
 def get_club_staff(club_id: int):
-
-    # Busca o clube utilizando o serviço existente.
+    # Verifica se o clube existe.
     club = get_club_by_id(club_id)
 
-    # Verifica se o clube existe.
+    # Retorna erro se o clube não existir.
     if club is None:
         raise HTTPException(
             status_code=404,
@@ -153,10 +219,13 @@ def get_club_staff(club_id: int):
     ]
 
 
+# ============================================================
+# ROTAS DE EQUIPES
+# ============================================================
+
 # Rota para cadastrar uma nova equipe.
 @app.post("/teams", status_code=201)
 def post_team(team_data: TeamCreate):
-
     # Envia os dados recebidos para o serviço de cadastro.
     team = create_team(
         name=team_data.name,
@@ -191,7 +260,6 @@ def post_team(team_data: TeamCreate):
 # Rota para listar as equipes vinculadas a um clube.
 @app.get("/clubs/{club_id}/teams")
 def get_club_teams(club_id: int):
-
     # Verifica se o clube solicitado existe.
     club = get_club_by_id(club_id)
 
@@ -221,10 +289,14 @@ def get_club_teams(club_id: int):
         for team in teams
     ]
 
+
+# ============================================================
+# ROTAS DE JOGADORES
+# ============================================================
+
 # Rota para cadastrar um novo jogador.
 @app.post("/players", status_code=201)
 def post_player(player_data: PlayerCreate):
-
     # Envia os dados recebidos para o serviço de cadastro.
     player = create_player(
         name=player_data.name,
@@ -259,10 +331,10 @@ def post_player(player_data: PlayerCreate):
         "updated_at": player.updated_at,
     }
 
+
 # Rota para listar os jogadores vinculados a uma equipe.
 @app.get("/teams/{team_id}/players")
 def get_team_players(team_id: int):
-
     # Busca a equipe pelo ID informado.
     team = get_team_by_id(team_id)
 
@@ -293,3 +365,88 @@ def get_team_players(team_id: int):
         }
         for player in players
     ]
+
+
+# ============================================================
+# ROTAS DE CONTRATOS
+# ============================================================
+
+# Rota para cadastrar um novo contrato.
+@app.post("/contracts", status_code=201)
+def post_contract(contract_data: ContractCreate):
+    # Envia os dados validados para o serviço de cadastro.
+    contract = create_contract(
+        player_id=contract_data.player_id,
+        start_date=contract_data.start_date,
+        end_date=contract_data.end_date,
+        monthly_salary=contract_data.monthly_salary,
+        total_value=contract_data.total_value,
+    )
+
+    # Verifica se o jogador informado existe.
+    if contract is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Jogador não encontrado.",
+        )
+
+    # Retorna os dados do contrato cadastrado.
+    return serialize_contract(contract)
+
+
+# Rota para listar o histórico de contratos de um jogador.
+@app.get("/players/{player_id}/contracts")
+def get_player_contracts(player_id: int):
+    # Consulta os contratos do jogador.
+    contracts = list_contracts_by_player(player_id)
+
+    # O serviço retorna None se o jogador não existir.
+    if contracts is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Jogador não encontrado.",
+        )
+
+    # Retorna os contratos encontrados.
+    # Se o jogador não tiver contratos, a resposta será [].
+    return [
+        serialize_contract(contract)
+        for contract in contracts
+    ]
+
+
+# Rota para encerrar antecipadamente um contrato.
+# A data deve ser enviada como parâmetro de consulta:
+# POST /contracts/1/terminate?terminated_at=2026-10-16
+@app.post("/contracts/{contract_id}/terminate")
+def post_terminate_contract(
+    contract_id: int,
+    terminated_at: date,
+):
+    # Solicita ao serviço o encerramento do contrato.
+    contract = terminate_contract(
+        contract_id=contract_id,
+        terminated_at=terminated_at,
+    )
+
+    # Verifica se o contrato não foi encontrado.
+    if contract is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Contrato não encontrado.",
+        )
+
+    # O serviço retorna False se o contrato já foi encerrado
+    # ou se a data está fora do período permitido.
+    if contract is False:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Não foi possível encerrar o contrato. "
+                "Verifique se ele já foi encerrado e se a data "
+                "está entre o início e o fim previsto."
+            ),
+        )
+
+    # Retorna os dados atualizados do contrato.
+    return serialize_contract(contract)

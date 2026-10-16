@@ -1,11 +1,16 @@
+
 # Importa Session para realizar operações no banco de dados.
 from sqlalchemy.orm import Session
+
 # Importa o mecanismo de conexão com o banco.
 from app.database import engine
+
 # Importa os modelos de equipe e jogador.
 from app.models import Team, Player
+
 # Importa date para indicar o tipo da data de nascimento.
 from datetime import date
+
 
 # Define uma função para cadastrar um jogador.
 def create_player(
@@ -57,6 +62,7 @@ def create_player(
 
 # Define uma função para listar os jogadores de uma equipe.
 def list_players_by_team(team_id: int):
+
     # Abre uma sessão para consultar o banco.
     with Session(engine) as session:
 
@@ -67,3 +73,18 @@ def list_players_by_team(team_id: int):
 
         # Retorna a lista de jogadores encontrados.
         return players
+
+
+# Define uma função para buscar um jogador pelo ID.
+def get_player_by_id(player_id: int):
+
+    # Abre uma sessão para consultar o banco de dados.
+    with Session(engine) as session:
+
+        # Busca o jogador que corresponde ao ID informado.
+        player = session.query(Player).filter(
+            Player.id == player_id
+        ).first()
+
+        # Retorna o jogador encontrado ou None se não existir.
+        return player

@@ -1,15 +1,19 @@
-
 # Importa date para datas sem horário e datetime/timezone para registros de data e hora.
 from datetime import date, datetime, timezone
-
-# Importa os tipos de dados e a chave estrangeira usados nos modelos.
-from sqlalchemy import String, ForeignKey, DateTime, Date, Integer
-
+# Importa os tipos de dados usados nas tabelas do sistema.
+from sqlalchemy import (
+    String,
+    ForeignKey,
+    DateTime,
+    Date,
+    Integer,
+    Numeric,
+)
 # Importa recursos para tipar e mapear as colunas dos modelos.
 from sqlalchemy.orm import Mapped, mapped_column
-
 # Importa a Base usada para registrar os modelos do banco.
 from app.database import Base
+from decimal import Decimal
 
 # Define o modelo que representará a tabela de clubes no banco.
 class Club(Base):
@@ -173,6 +177,73 @@ class Player(Base):
     )
 
     # Data e hora da última atualização do registro.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+    # Importa Decimal para representar valores monetários com precisão.
+from decimal import Decimal
+
+
+# Define o modelo que representará os contratos dos jogadores.
+class Contract(Base):
+
+    # Define o nome da tabela no banco de dados.
+    __tablename__ = "contracts"
+
+    # Identificador único de cada contrato.
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    # ID do jogador vinculado ao contrato.
+    # A chave estrangeira exige que o jogador exista.
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("players.id"),
+        nullable=False,
+        index=True,
+    )
+
+    # Data em que o contrato começa a valer.
+    start_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+
+    # Data prevista para o término do contrato.
+    end_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+
+    # Salário mensal do jogador, com duas casas decimais.
+    monthly_salary: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        nullable=False,
+    )
+
+    # Valor total do contrato, quando informado.
+    # O campo é opcional porque nem todo contrato terá esse valor definido.
+    total_value: Mapped[Decimal | None] = mapped_column(
+        Numeric(14, 2),
+        nullable=True,
+    )
+
+    # Data de encerramento antecipado, quando aplicável.
+    # None significa que não foi registrado encerramento antecipado.
+    terminated_at: Mapped[date | None] = mapped_column(
+        Date,
+        nullable=True,
+    )
+
+    # Data e hora em que o contrato foi criado no sistema.
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    # Data e hora da última atualização do contrato.
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

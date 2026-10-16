@@ -4,7 +4,8 @@ from datetime import date
 from pydantic import BaseModel, Field
 # Importa o validador de campos do Pydantic.
 from pydantic import field_validator
-
+# Importa Decimal para validar valores monetários com precisão.
+from decimal import Decimal
 
 # Define os dados recebidos ao cadastrar um clube.
 class ClubCreate(BaseModel):
@@ -148,7 +149,41 @@ class PlayerCreate(BaseModel):
         # Aceita somente os três valores padronizados.
         if value not in {"right", "left", "both"}:
             raise ValueError("dominant_foot must be right, left or both")
-
         # Retorna o valor validado.
         return value
-    
+    # Define os dados recebidos ao cadastrar um contrato.
+class ContractCreate(BaseModel):
+
+    # ID do jogador que receberá o contrato.
+    player_id: int = Field(gt=0)
+
+    # Data de início da vigência do contrato.
+    start_date: date
+
+    # Data prevista para o término do contrato.
+    end_date: date
+
+    # Salário mensal, que não pode ser negativo.
+    monthly_salary: Decimal = Field(ge=0, max_digits=12, decimal_places=2)
+
+    # Valor total opcional, também sem valores negativos.
+    total_value: Decimal | None = Field(
+        default=None,
+        ge=0,
+        max_digits=14,
+        decimal_places=2,
+    )
+
+    # Valida se a data final é igual ou posterior à inicial.
+    @field_validator("end_date")
+    @classmethod
+    def validate_end_date(cls, value, info):
+        # Obtém a data inicial já validada, quando disponível.
+        start_date = info.data.get("start_date")
+
+        # Impede que o contrato termine antes de começar.
+        if start_date is not None and value < start_date:
+            raise ValueError("end_date must be on or after start_date")
+
+        # Retorna a data validada.
+        return value
